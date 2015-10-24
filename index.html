@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Cierving</title>
+	<style>
+		body {
+			margin: 0;
+		}
+	</style>
+	<script type="text/javascript" src="random-0.26.js"></script>
+	<script>
+
+	var data = {
+		antler1:{
+			l: 20,
+			angle: 3,
+			sub1 : {
+				l: 20,
+				angle: 3
+			},
+			sub2 : {
+				l: 20,
+				angle: -8
+			}
+
+		},
+		antler2:{
+			l: 20,
+			angle: -20,
+			sub1 : {
+				l: 20,
+				angle: 3
+			},
+			sub2 : {
+				l: 20,
+				angle: -8
+			}
+		}
+	}
+
+
+
+	var MAX_HEIGHT = 2000,
+		MAX_WIDTH = 1000,
+		ANGLE_MU = 0,
+		ANGLE_SIGMA = 40,
+		LENGTH_MU = 70,
+		LENGTH_SIGMA = 40;
+
+	var Random = new Random(); 
+
+	console.time("hola");
+
+
+	function generateAntler(maxX, maxY, prevAngle, count){
+		var res = {
+			l : Random.normal(LENGTH_MU,LENGTH_SIGMA),
+			angle : Random.normal(ANGLE_MU, ANGLE_SIGMA),
+			oriX: maxX,
+			oriY: maxY,
+			oriAngle: prevAngle
+		};
+		res.dstX = maxX = maxX + res.l*Math.cos((res.angle+prevAngle)*Math.PI/180); 
+		res.dstY = maxY = maxY + res.l*Math.sin((res.angle+prevAngle)*Math.PI/180);
+		count += 1;
+		if (count <= 5 && Math.abs(maxX)<MAX_WIDTH && Math.abs(maxY)<MAX_HEIGHT){
+			res.sub1 = generateAntler(maxX, maxY, res.angle+prevAngle, count);
+			res.sub2 = generateAntler(maxX, maxY, res.angle+prevAngle, count);
+		};
+		return res;
+	}
+
+
+	data = {
+		antler1:generateAntler(0,0,45,0),
+		antler2:generateAntler(0,0,135,0)
+	};
+
+	console.timeEnd("hola");
+
+
+	
+
+	
+
+	</script>
+
+
+</head>
+<body>
+
+<canvas id = "theCanvas">
+
+</canvas>
+<script>
+window.onload = window.onresize = function(){
+	var canvasito = document.getElementById("theCanvas");
+	canvasito.width = window.innerWidth; 
+	canvasito.height = window.innerHeight; 
+}
+
+
+	var c=document.getElementById("theCanvas");
+	var ctx=c.getContext("2d");
+
+
+
+	function transformCoord(value, direction){
+		switch(direction){
+			case "h":
+				return c.width/2.0 + value;
+			case "v":
+				return c.height - value;
+		}
+	}
+
+
+	
+
+	function drawPart(part){
+		ctx.beginPath();
+		ctx.moveTo(transformCoord(part.oriX,"h"), transformCoord(part.oriY, "v"));
+		ctx.lineTo(transformCoord(part.dstX,"h"), transformCoord(part.dstY, "v"));
+		ctx.stroke();
+	}
+
+	function drawAntler(antler){
+		drawPart(antler);
+		if (antler.sub1){
+			drawAntler(antler.sub1);
+			drawAntler(antler.sub2);
+		}
+	}
+
+	setTimeout(function(){
+		//ctx.beginPath();
+		//ctx.moveTo(20, 20);
+		//ctx.lineTo(400, 400);
+		//ctx.stroke();
+		drawAntler(data.antler1);
+		drawAntler(data.antler2);
+		
+	}, 1000);
+
+
+</script>
+
+
+
+
+<!--<textarea id="data-textarea" style="width: 100%; height: 600px;"></textarea>
+
+<script>document.getElementById("data-textarea").value = JSON.stringify(data, null, "\t")</script>-->
+
+
+
+
+</body>
+</html>
